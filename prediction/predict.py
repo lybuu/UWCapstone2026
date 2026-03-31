@@ -65,5 +65,5 @@ def main():
     print("\nPredicted next 5 air quality values:")
     print(air_preds)
 
-if name == "main":
+if __name__ == "__main__":
     main()

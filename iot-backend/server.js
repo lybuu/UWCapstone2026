@@ -16,20 +16,22 @@ const supabase = createClient(
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   }
 );
 
 app.get("/", (req, res) => {
   res.json({
     ok: true,
-    message: "Sensor backend is running"
+    message: "Sensor backend is running",
   });
 });
 
 app.post("/api/readings", async (req, res) => {
   try {
+    console.log("BODY RECEIVED:", req.body);
+
     const { device_id, temperature, humidity, airQuality } = req.body;
 
     if (
@@ -39,7 +41,7 @@ app.post("/api/readings", async (req, res) => {
     ) {
       return res.status(400).json({
         ok: false,
-        error: "Missing temperature, humidity, or airQuality"
+        error: "Missing temperature, humidity, or airQuality",
       });
     }
 
@@ -47,8 +49,10 @@ app.post("/api/readings", async (req, res) => {
       device_id: device_id || "arduino-uno-01",
       temperature_c: Number(temperature),
       humidity: Number(humidity),
-      air_quality: Number(airQuality)
+      air_quality: Number(airQuality),
     };
+
+    console.log("INSERTING:", payload);
 
     const { data, error } = await supabase
       .from("sensor_readings")
@@ -59,19 +63,21 @@ app.post("/api/readings", async (req, res) => {
       console.error("Supabase insert error:", error);
       return res.status(500).json({
         ok: false,
-        error: error.message
+        error: error.message,
       });
     }
 
-    return res.json({
+    console.log("INSERT SUCCESS:", data[0]);
+
+    return res.status(200).json({
       ok: true,
-      inserted: data[0]
+      inserted: data[0],
     });
   } catch (err) {
     console.error("POST /api/readings error:", err);
     return res.status(500).json({
       ok: false,
-      error: "Internal server error"
+      error: "Internal server error",
     });
   }
 });
@@ -90,20 +96,20 @@ app.get("/api/readings", async (req, res) => {
       console.error("Supabase read error:", error);
       return res.status(500).json({
         ok: false,
-        error: error.message
+        error: error.message,
       });
     }
 
     return res.json({
       ok: true,
       count: data.length,
-      readings: data
+      readings: data,
     });
   } catch (err) {
     console.error("GET /api/readings error:", err);
     return res.status(500).json({
       ok: false,
-      error: "Internal server error"
+      error: "Internal server error",
     });
   }
 });
@@ -120,23 +126,24 @@ app.get("/api/latest", async (req, res) => {
       console.error("Supabase latest error:", error);
       return res.status(500).json({
         ok: false,
-        error: error.message
+        error: error.message,
       });
     }
 
     return res.json({
       ok: true,
-      latest: data[0] || null
+      latest: data[0] || null,
     });
   } catch (err) {
     console.error("GET /api/latest error:", err);
     return res.status(500).json({
       ok: false,
-      error: "Internal server error"
+      error: "Internal server error",
     });
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Open: http://localhost:${PORT}/`);
 });
